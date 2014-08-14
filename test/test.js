@@ -87,7 +87,11 @@ describe("Node Server Request Listener Function", function() {
 
 describe("html fetcher helpers", function(){
 
-  it("should have a 'readListOfUrls' function", function(done){
+  it("should have a 'readListOfUrls' function", function(){
+    expect(typeof archive.readListOfUrls).to.equal('function');
+  });
+
+  it(" 'readListOfUrls' should work as a function", function(done){
     var urlArray = ["example1.com", "example2.com"];
     var resultArray;
 

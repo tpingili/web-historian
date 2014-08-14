@@ -1,4 +1,6 @@
 var fs = require('fs');
+var readline = require('readline');
+var stream = require('stream');
 var path = require('path');
 var _ = require('underscore');
 
@@ -25,16 +27,50 @@ exports.initialize = function(pathsObj){
 // The following function names are provided to you to suggest how you might
 // modularize your code. Keep it clean!
 
-exports.readListOfUrls = function(){
+exports.readListOfUrls = function(callback){
+  var instream = fs.createReadStream(exports.paths.list);
+  var outstream = new stream;
+  var rl = readline.createInterface(instream, outstream);
+  var list = [];
+  rl.on('line', function(line) {
+    list.push(line);
+  });
+
+  rl.on('close', function() {
+    // do something on finish here
+    console.log("found lines: " + list);
+    return callback(list);
+  });
+
 };
 
-exports.isUrlInList = function(){
+exports.isUrlInList = function(url, callback){
+  //find url in sites.txt
+  console.log("isUrlInList:" +url);
+  var _url = url;
+  return exports.readListOfUrls(function(urlArray){
+    console.log(" url:"+ url);
+    console.log(" _url:"+ _url);
+    return callback(_.contains(urlArray, _url));
+  });
 };
 
-exports.addUrlToList = function(){
+exports.addUrlToList = function(url){
+
 };
 
-exports.isURLArchived = function(){
+exports.isURLArchived = function(url, callback){
+  //this is called when the data from the html is loaded into the file
+  //and that file is written into archives/sites/filename
+  //
+  //Tells us if the archive exists
+  console.log("trying to open :" + exports.paths.archivedSites+"/"+url);
+  return fs.open(exports.paths.archivedSites+"/"+url,'r',function(err, fd){
+    if (err) {
+      return callback(false);
+    }
+    return callback(true);
+  });
 };
 
 exports.downloadUrls = function(){
