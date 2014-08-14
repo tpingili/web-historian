@@ -33,7 +33,10 @@ exports.readListOfUrls = function(callback){
   var rl = readline.createInterface(instream, outstream);
   var list = [];
   rl.on('line', function(line) {
+    console.log("pushed: " + line + " \n to " + list);
+
     list.push(line);
+    console.log("after push: " + list);
   });
 
   rl.on('close', function() {
@@ -46,17 +49,18 @@ exports.readListOfUrls = function(callback){
 
 exports.isUrlInList = function(url, callback){
   //find url in sites.txt
-  console.log("isUrlInList:" +url);
   var _url = url;
   return exports.readListOfUrls(function(urlArray){
-    console.log(" url:"+ url);
-    console.log(" _url:"+ _url);
     return callback(_.contains(urlArray, _url));
   });
 };
 
-exports.addUrlToList = function(url){
-
+exports.addUrlToList = function(url, callback){
+  fs.appendFile(exports.paths.list, url + "\n", function (err) {
+    if (err) throw err;
+    console.log('The "data to append" was appended to file!');
+    callback();
+  });
 };
 
 exports.isURLArchived = function(url, callback){

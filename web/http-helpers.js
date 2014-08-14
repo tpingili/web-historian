@@ -11,22 +11,25 @@ exports.headers = headers = {
   'Content-Type': "text/html"
 };
 
-exports.serveAssets = function(res, asset, callback) {
+exports.serveAssets = function(res, asset, callback, statusCode) {
   // Write some code here that helps serve up your static files!
   // (Static files are things like html (yours or archived from others...), css, or anything that doesn't change often.)
+      console.log("status code in serveAssets:" +statusCode);
   var path = "";
   archive.isUrlInList(asset.substr(1), function(inList){
     if(inList){
       path = archive.paths.archivedSites;
+
     }else{
       path = archive.paths.siteAssets;
+
     }
-    console.log("path+asset:", path+asset);
     fs.readFile(path + asset, function(err, data){
       if(err){
         throw err;
       }
-      callback(res, data);
+      console.log("status code in readFile:" +statusCode);
+      callback(res, data, statusCode);
     });
   });
 };
@@ -39,4 +42,14 @@ exports.sendResponse = function(response, data, statusCode){
 };
 exports.getPathName = function(request){
   return url.parse(request.url).pathname;
+};
+
+exports.collectData = function(request, callback){
+  var msg = "";
+  request.on('data', function(chunk){
+    msg += chunk;
+  });
+  request.on('end', function(){
+    callback(msg);
+  });
 };
