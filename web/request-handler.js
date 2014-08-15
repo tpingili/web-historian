@@ -33,24 +33,32 @@ exports.handleRequest = function (request, response) {
         }
       });
     }
-  } else {
-      httpHelpers.collectData(request,function(data){
-        archive.addUrlToList(data.slice(data.indexOf('=')+1), function(){
-          exports.serveIndex(request,response, '/', 302);
-        });
-      })
-
-
-
-    // archive.isUrlInList(siteName, function(inList){
-    //   if(!inList){
-    //     archive.isURLArchived(siteName, function(isArchive){
-    //       if(!isArchive){
-
-    //       }
-    //     })
-    //   }
-    // })
+  }else if(request.method === "POST"){
+    httpHelpers.collectData(request,function(data){
+      var formattedData = data.slice(17);
+      archive.isUrlInList(formattedData, function(inList){
+        if(!inList){
+          archive.addUrlToList(formattedData, function(){
+            exports.serveIndex(request,response, '/loading.html', 302);
+          });
+        } else {
+          archive.isURLArchived(formattedData,function(isArchive){
+            if(isArchive){
+              console.log("if url is archived and ready to display");
+              //redirect to send user the archived site
+              exports.serveIndex(request,response, "/"+formattedData);
+            }else{
+              console.log("if url is not archived but is in the list");
+              //else direct to loading
+              exports.serveIndex(request,response, '/loading.html', 200);
+            }
+          });
+        }
+      });
+    });
+  }else if(request.method === "PUT" && pathname === "/"){
+    archive.downloadUrls();
+    exports.serveIndex(request,response, '/', 200);
   }
 };
 exports.serveIndex = function(request, response, pathname, statusCode){

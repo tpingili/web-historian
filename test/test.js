@@ -54,6 +54,10 @@ describe("Node Server Request Listener Function", function() {
 
   it("Should append submitted sites to 'sites.txt'", function(done) {
     var url = "www.example.com";
+    var data = {
+      url: url
+    };
+
     var req = new stubs.Request("/", "POST", {url: url});
 
     // Reset the test file and process request
@@ -98,6 +102,7 @@ describe("html fetcher helpers", function(){
     fs.writeFileSync(archive.paths.list, urlArray.join("\n"));
     archive.readListOfUrls(function(urls){
       resultArray = urls;
+      console.log("Test results array: " +resultArray);
     });
 
     waitForThen(

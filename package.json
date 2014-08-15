@@ -11,8 +11,7 @@
     "mocha": "^1.21.4",
     "q": "^1.0.0",
     "request": "^2.34.0",
-    "underscore": "^1.6.0",
-    "http-request": "^0.6.3"
+    "underscore": "^1.6.0"
   },
   "scripts": {
     "test": "./node_modules/mocha/bin/mocha test/test.js"
