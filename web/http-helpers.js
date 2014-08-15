@@ -14,7 +14,6 @@ exports.headers = headers = {
 exports.serveAssets = function(res, asset, callback, statusCode) {
   // Write some code here that helps serve up your static files!
   // (Static files are things like html (yours or archived from others...), css, or anything that doesn't change often.)
-      console.log("status code in serveAssets:" +statusCode);
   var path = "";
   archive.isUrlInList(asset.substr(1), function(inList){
     if(inList){
@@ -28,7 +27,6 @@ exports.serveAssets = function(res, asset, callback, statusCode) {
       if(err){
         throw err;
       }
-      console.log("status code in readFile:" +statusCode);
       callback(res, data, statusCode);
     });
   });
@@ -37,7 +35,6 @@ exports.serveAssets = function(res, asset, callback, statusCode) {
 exports.sendResponse = function(response, data, statusCode){
   statusCode = statusCode || 200;
   response.writeHead(statusCode, exports.headers);
-  console.log(statusCode);
   response.end(data);
 };
 exports.getPathName = function(request){

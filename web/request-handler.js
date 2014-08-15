@@ -1,70 +1,63 @@
 var path = require('path');
 var archive = require('../helpers/archive-helpers');
-var url = require("url");
-// require more modules/folders here!
+var url = require('url');
 var httpHelpers = require('./http-helpers');
+
 
 exports.handleRequest = function (request, response) {
   var pathname = httpHelpers.getPathName(request);
-  var siteName = pathname.substr(1);
   //if it's not / and url is in our list
-  if(request.method === "GET"){
-    if(!siteName){
-      console.log("if site is /");
-      exports.serveIndex(request, response, pathname);
-    }else{
-      archive.isUrlInList(siteName, function(inList){
-        if(inList){
-          console.log("if url is in the list");
-          //is url archived
-          archive.isURLArchived(siteName,function(isArchive){
-            if(isArchive){
-              console.log("if url is archived and ready to display");
-              //redirect to send user the archived site
-              exports.serveIndex(request,response, pathname);
-            } else{
-              console.log("if url is not archived but is in the list");
-              //else direct to loading
-              exports.serveIndex(request,response, '/loading.html', 200);
-            }
-          });
-        }else{
-          exports.serveIndex(request,response, '/', 404);
-        }
-      });
+  if(request.method === 'GET'){
+    if(pathname === '/'){
+      exports.servePage(request, response, pathname);
+    } else{
+      console.log("pathname:" +pathname);
+      exports.routeBasedOnList(pathname, request, response, request.method);
     }
-  }else if(request.method === "POST"){
+  }else if(request.method === 'POST'){
     httpHelpers.collectData(request,function(data){
-      var formattedData = data.slice(17);
-      archive.isUrlInList(formattedData, function(inList){
-        if(!inList){
-          archive.addUrlToList(formattedData, function(){
-            exports.serveIndex(request,response, '/loading.html', 302);
-          });
-        } else {
-          archive.isURLArchived(formattedData,function(isArchive){
-            if(isArchive){
-              console.log("if url is archived and ready to display");
-              //redirect to send user the archived site
-              exports.serveIndex(request,response, "/"+formattedData);
-            }else{
-              console.log("if url is not archived but is in the list");
-              //else direct to loading
-              exports.serveIndex(request,response, '/loading.html', 200);
-            }
-          });
-        }
-      });
+      exports.routeBasedOnList(data, request, response, request.method);
     });
-  }else if(request.method === "PUT" && pathname === "/"){
+  }else if(request.method === 'PUT' && pathname === '/'){
     archive.downloadUrls();
-    exports.serveIndex(request,response, '/', 200);
+    exports.servePage(request,response, '/', 200);
   }
 };
-exports.serveIndex = function(request, response, pathname, statusCode){
-  pathname = pathname === "/" ? "/index.html" : pathname;
-      console.log("status code in serveIndex:" +statusCode);
 
+
+exports.servePage = function(request, response, pathname, statusCode){
+  pathname = pathname === '/' ? '/index.html' : pathname;
   httpHelpers.serveAssets(response, pathname, httpHelpers.sendResponse, statusCode );
 };
 
+
+exports.routeBasedOnList = function(data,request,response,method){
+  var formattedData = method === 'GET' ? data.slice(data.indexOf('/') + 1) :data.slice(17);
+  archive.isUrlInList(formattedData, function(inList){
+    exports.serveIfContained(inList, request, response, formattedData, method);
+  });
+};
+
+
+exports.serveIfContained = function(hasSite, request, response, data, method){
+  if(!hasSite){
+    if(method === 'GET'){
+      exports.servePage(request,response, '/', 404);
+    } else {
+      archive.addUrlToList(data, function(){
+        exports.servePage(request,response, '/loading.html', 302);
+      });
+    }
+  } else {
+    archive.isURLArchived(data,function(isArchive){
+      if(isArchive){
+        //redirect to send user the archived site
+        exports.servePage(request,response, '/'+data, 200);
+      }else{
+        //else direct to loading
+        exports.servePage(request,response, '/loading.html', 302);
+      }
+    });
+  }
+
+};
